@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Facts Worksheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f4ff;
+  --white: #ffffff;
+  --border: #d0d8f0;
+  --text: #1a1f3a;
+  --muted: #7a829e;
+  --add:  #2563eb;
+  --sub:  #7c3aed;
+  --mul:  #d97706;
+  --div:  #dc2626;
+  --add-bg: #eff6ff;
+  --sub-bg: #f5f3ff;
+  --mul-bg: #fffbeb;
+  --div-bg: #fff5f5;
+  --correct: #059669;
+  --wrong:   #dc2626;
+  --timer-good: #059669;
+  --timer-warn: #d97706;
+  --timer-bad:  #dc2626;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Nunito Sans', sans-serif; min-height: 100vh; }
+
+/* ── START ── */
+#start-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 2rem; text-align: center;
+}
+.start-logo { font-family:'Nunito',sans-serif; font-weight:900; font-size:clamp(2.5rem,8vw,4.5rem); color:var(--text); margin-bottom:0.2rem; }
+.start-logo span { color: var(--add); }
+.start-sub { color:var(--muted); font-size:1rem; margin-bottom:2.5rem; }
+.start-cats { display:flex; flex-wrap:wrap; gap:0.5rem; justify-content:center; max-width:400px; margin-bottom:2rem; }
+.start-cat { padding:0.35rem 1rem; border-radius:999px; font-family:'Nunito',sans-serif; font-weight:700; font-size:0.85rem; border:2px solid; }
+.start-info { display:flex; gap:1.5rem; margin-bottom:2.5rem; flex-wrap:wrap; justify-content:center; }
+.start-stat { background:var(--white); border:2px solid var(--border); border-radius:16px; padding:1rem 1.5rem; text-align:center; min-width:100px; }
+.start-stat .n { font-family:'Nunito',sans-serif; font-weight:900; font-size:2rem; color:var(--add); }
+.start-stat .l { font-size:0.75rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.08em; }
+.btn-go { background:var(--add); color:#fff; border:none; border-radius:16px; padding:1rem 3rem; font-family:'Nunito',sans-serif; font-weight:900; font-size:1.3rem; cursor:pointer; transition:transform 0.15s,box-shadow 0.15s; box-shadow:0 4px 20px rgba(37,99,235,0.35); }
+.btn-go:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(37,99,235,0.45); }
+
+/* ── WORKSHEET ── */
+#worksheet-screen { display:none; }
+
+.ws-header {
+  background:var(--white); border-bottom:2px solid var(--border);
+  padding:0.75rem 1.5rem; display:flex; align-items:center; gap:1rem;
+  position:sticky; top:0; z-index:50;
+}
+.ws-title { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.2rem; color:var(--text); margin-right:auto; }
+.ws-title span { color:var(--add); }
+.answered-count { font-family:'Nunito',sans-serif; font-weight:700; font-size:0.85rem; color:var(--muted); white-space:nowrap; }
+.answered-count strong { color:var(--text); }
+
+.timer-box { display:flex; align-items:center; gap:0.5rem; background:var(--bg); border:2px solid var(--border); border-radius:12px; padding:0.4rem 0.9rem; }
+.timer-val { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.4rem; min-width:60px; color:var(--timer-good); transition:color 0.3s; }
+
+/* Countdown ring */
+.countdown-wrap { position:relative; width:44px; height:44px; flex-shrink:0; }
+.countdown-wrap svg { transform:rotate(-90deg); }
+.countdown-bg { fill:none; stroke:var(--border); stroke-width:4; }
+.countdown-arc { fill:none; stroke-width:4; stroke-linecap:round; transition:stroke-dashoffset 0.5s linear, stroke 0.5s; }
+.countdown-label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Nunito',sans-serif; font-weight:900; font-size:0.6rem; color:var(--muted); line-height:1; text-align:center; }
+
+.pace-pill { font-family:'Nunito',sans-serif; font-weight:800; font-size:0.8rem; padding:0.3rem 0.8rem; border-radius:999px; border:2px solid; transition:all 0.3s; white-space:nowrap; }
+
+.btn-submit { background:var(--correct); color:white; border:none; border-radius:12px; padding:0.5rem 1.4rem; font-family:'Nunito',sans-serif; font-weight:800; font-size:0.95rem; cursor:pointer; transition:opacity 0.15s,transform 0.15s; white-space:nowrap; }
+.btn-submit:hover { opacity:0.88; transform:translateY(-1px); }
+
+/* Progress bar */
+.progress-bar-wrap { height:5px; background:var(--border); position:sticky; top:67px; z-index:49; }
+.progress-bar-fill { height:100%; background:var(--add); transition:width 0.3s ease; width:0%; }
+
+/* Worksheet body */
+.ws-body { padding:1.5rem; max-width:1100px; margin:0 auto; }
+.section-block { margin-bottom:2rem; }
+.section-header { display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem; }
+.section-title { font-family:'Nunito',sans-serif; font-weight:900; font-size:1rem; text-transform:uppercase; letter-spacing:0.06em; }
+.section-line { flex:1; height:2px; border-radius:1px; }
+.section-count { font-family:'Nunito',sans-serif; font-weight:700; font-size:0.8rem; color:var(--muted); }
+
+.q-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(155px,1fr)); gap:0.55rem; }
+
+.q-cell {
+  background:var(--white); border:2px solid var(--border); border-radius:12px;
+  padding:0.65rem 0.75rem; display:flex; align-items:center; gap:0.4rem;
+  transition:border-color 0.2s, box-shadow 0.15s; position:relative;
+}
+.q-cell:focus-within { border-color:var(--cell-color,var(--add)); box-shadow:0 0 0 3px rgba(37,99,235,0.1); }
+.q-cell.correct { background:#f0fdf4; border-color:var(--correct); }
+.q-cell.wrong   { background:#fff5f5; border-color:var(--wrong); cursor:help; }
+
+/* Hover tooltip */
+.q-cell.wrong::after {
+  content:attr(data-answer); position:absolute; bottom:calc(100% + 6px);
+  left:50%; transform:translateX(-50%); background:#1a1f3a; color:#fff;
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:0.82rem;
+  padding:0.3rem 0.7rem; border-radius:8px; white-space:nowrap; pointer-events:none;
+  opacity:0; transition:opacity 0.15s; z-index:20;
+}
+.q-cell.wrong::before {
+  content:''; position:absolute; bottom:calc(100% + 1px);
+  left:50%; transform:translateX(-50%); border:5px solid transparent;
+  border-top-color:#1a1f3a; pointer-events:none; opacity:0; transition:opacity 0.15s; z-index:20;
+}
+.q-cell.wrong:hover::after, .q-cell.wrong:hover::before { opacity:1; }
+
+.q-num { font-family:'Nunito',sans-serif; font-weight:700; font-size:0.62rem; color:var(--muted); position:absolute; top:4px; left:6px; }
+.q-expr { font-family:'Nunito',sans-serif; font-weight:800; font-size:1rem; color:var(--text); white-space:nowrap; flex:1; text-align:right; padding-right:0.15rem; }
+.q-input { width:50px; border:none; outline:none; background:transparent; font-family:'Nunito',sans-serif; font-weight:900; font-size:1.05rem; text-align:center; color:var(--text); border-bottom:2px solid var(--border); border-radius:0; padding:0 2px; transition:border-color 0.2s; -moz-appearance:textfield; }
+.q-input::-webkit-outer-spin-button, .q-input::-webkit-inner-spin-button { -webkit-appearance:none; }
+.q-input:focus { border-bottom-color:var(--cell-color,var(--add)); }
+.q-input.filled { color:var(--add); border-bottom-color:var(--add); }
+.q-cell.correct .q-input { color:var(--correct); }
+.q-cell.wrong   .q-input { color:var(--wrong); }
+.q-result-icon { font-size:0.95rem; display:none; font-style:normal; }
+.q-cell.correct .q-result-icon { display:block; color:var(--correct); }
+.q-cell.wrong   .q-result-icon { display:block; color:var(--wrong); }
+
+/* ── RESULTS ── */
+#results-screen {
+  display:none; position:fixed; inset:0; z-index:200;
+  background:rgba(240,244,255,0.97); flex-direction:column; align-items:center;
+  justify-content:flex-start; padding:2rem 1rem; overflow-y:auto; text-align:center;
+}
+.results-inner { max-width:680px; width:100%; }
+.res-badge { display:inline-block; background:var(--white); border:3px solid var(--border); border-radius:999px; padding:0.3rem 1.2rem; font-family:'Nunito',sans-serif; font-weight:800; font-size:0.85rem; color:var(--muted); margin-bottom:1rem; letter-spacing:0.05em; text-transform:uppercase; }
+.res-title { font-family:'Nunito',sans-serif; font-weight:900; font-size:clamp(2rem,7vw,3.5rem); margin-bottom:0.25rem; }
+.res-score { font-family:'Nunito',sans-serif; font-weight:900; font-size:clamp(3.5rem,12vw,6rem); color:var(--add); line-height:1; margin-bottom:0.5rem; }
+.res-meta { display:flex; justify-content:center; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+.res-meta-item { background:var(--white); border:2px solid var(--border); border-radius:12px; padding:0.6rem 1rem; font-family:'Nunito',sans-serif; font-size:0.9rem; }
+.res-meta-item strong { font-weight:800; color:var(--text); }
+.res-cats { display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; margin-bottom:2rem; }
+@media(max-width:480px){ .res-cats { grid-template-columns:repeat(2,1fr); } }
+.res-cat { background:var(--white); border:2px solid var(--border); border-radius:12px; padding:0.9rem 0.7rem; position:relative; overflow:hidden; }
+.res-cat-name { font-family:'Nunito',sans-serif; font-weight:700; font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.25rem; }
+.res-cat-score { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.8rem; }
+.res-cat-bar-wrap { height:4px; background:var(--border); border-radius:2px; margin-top:0.4rem; overflow:hidden; }
+.res-cat-bar-fill { height:100%; border-radius:2px; }
+.btn-again { background:var(--add); color:white; border:none; border-radius:14px; padding:0.9rem 2.5rem; font-family:'Nunito',sans-serif; font-weight:900; font-size:1.1rem; cursor:pointer; margin-bottom:1.5rem; transition:opacity 0.15s; }
+.btn-again:hover { opacity:0.85; }
+.btn-review { background:transparent; color:var(--muted); border:2px solid var(--border); border-radius:14px; padding:0.7rem 2rem; font-family:'Nunito',sans-serif; font-weight:700; font-size:0.95rem; cursor:pointer; margin-left:0.75rem; transition:border-color 0.15s,color 0.15s; }
+.btn-review:hover { border-color:var(--text); color:var(--text); }
+
+/* Modal */
+.modal-bg { display:none; position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); align-items:center; justify-content:center; }
+.modal-bg.open { display:flex; }
+.modal { background:var(--white); border:2px solid var(--border); border-radius:20px; padding:2rem; max-width:360px; width:90%; text-align:center; }
+.modal h2 { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.5rem; margin-bottom:0.5rem; }
+.modal p { color:var(--muted); font-size:0.9rem; line-height:1.6; margin-bottom:1.5rem; }
+.modal p strong { color:var(--wrong); }
+.modal-btns { display:flex; gap:0.75rem; }
+.modal-btn { flex:1; border-radius:12px; padding:0.75rem; cursor:pointer; font-family:'Nunito',sans-serif; font-weight:800; font-size:1rem; border:2px solid; transition:all 0.15s; }
+.modal-btn.cancel { background:transparent; border-color:var(--border); color:var(--muted); }
+.modal-btn.cancel:hover { border-color:var(--text); color:var(--text); }
+.modal-btn.go { background:var(--correct); border-color:var(--correct); color:white; }
+.modal-btn.go:hover { opacity:0.85; }
+</style>
+</head>
+<body>
+
+<!-- START -->
+<section id="start-screen">
+  <div class="start-logo">Math <span>Facts</span></div>
+  <div class="start-sub">100 questions · target 6:30 · marked at the end</div>
+  <div class="start-cats">
+    <div class="start-cat" style="color:var(--add);border-color:var(--add);background:var(--add-bg)">+ Addition</div>
+    <div class="start-cat" style="color:var(--sub);border-color:var(--sub);background:var(--sub-bg)">− Subtraction</div>
+    <div class="start-cat" style="color:var(--mul);border-color:var(--mul);background:var(--mul-bg)">× Multiplication</div>
+    <div class="start-cat" style="color:var(--div);border-color:var(--div);background:var(--div-bg)">÷ Division</div>
+  </div>
+  <div class="start-info">
+    <div class="start-stat"><div class="n">100</div><div class="l">Questions</div></div>
+    <div class="start-stat"><div class="n">25</div><div class="l">Per category</div></div>
+    <div class="start-stat"><div class="n">6:30</div><div class="l">Target time</div></div>
+  </div>
+  <button class="btn-go" onclick="startQuiz()">Start →</button>
+</section>
+
+<!-- WORKSHEET -->
+<section id="worksheet-screen">
+  <div class="ws-header">
+    <div class="ws-title">Math <span>Facts</span></div>
+    <div class="answered-count"><strong id="ans-done">0</strong> / 100 answered</div>
+
+    <!-- Countdown ring -->
+    <div class="countdown-wrap" title="Time remaining">
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <circle class="countdown-bg" cx="22" cy="22" r="18"/>
+        <circle class="countdown-arc" id="countdown-arc" cx="22" cy="22" r="18"
+                stroke="var(--timer-good)"
+                stroke-dasharray="113.1"
+                stroke-dashoffset="0"/>
+      </svg>
+      <div class="countdown-label" id="countdown-label">6:30</div>
+    </div>
+
+    <div class="timer-box">
+      <span>⏱</span>
+      <span class="timer-val" id="timer-val">0:00</span>
+    </div>
+    <div class="pace-pill" id="pace-pill" style="color:var(--timer-good);border-color:var(--timer-good);background:#f0fdf4">—</div>
+    <button class="btn-submit" id="btn-submit-header" onclick="trySubmit()">Submit →</button>
+  </div>
+  <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill"></div></div>
+  <div class="ws-body" id="ws-body"></div>
+</section>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h2>Submit?</h2>
+    <p id="modal-msg"></p>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="closeModal()">Go Back</button>
+      <button class="modal-btn go" onclick="finishQuiz()">Mark It ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<section id="results-screen">
+  <div class="results-inner">
+    <div class="res-badge">Results</div>
+    <div class="res-title" id="res-title"></div>
+    <div class="res-score" id="res-score"></div>
+    <div class="res-meta" id="res-meta"></div>
+    <div class="res-cats" id="res-cats"></div>
+    <div>
+      <button class="btn-again" onclick="goHome()">Try Again</button>
+      <button class="btn-review" onclick="showReview()">Review Answers ↓</button>
+    </div>
+  </div>
+</section>
+
+<script>
+// ── CONFIG ──
+const TOTAL = 100;
+const PER_CAT = 25;
+const TARGET_SECONDS = 390; // 6 min 30 sec
+const CIRCUMFERENCE = 2 * Math.PI * 18; // SVG circle r=18 → ~113.1
+
+const CATS = {
+  add: { label:'Addition',       color:'var(--add)', bg:'var(--add-bg)' },
+  sub: { label:'Subtraction',    color:'var(--sub)', bg:'var(--sub-bg)' },
+  mul: { label:'Multiplication', color:'var(--mul)', bg:'var(--mul-bg)' },
+  div: { label:'Division',       color:'var(--div)', bg:'var(--div-bg)' },
+};
+const CAT_ORDER = ['add','sub','mul','div'];
+
+function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=rand(0,i);[a[i],a[j]]=[a[j],a[i]];}return a; }
+
+function generate(){
+  const bycat={};
+  bycat.add=[];
+  for(let i=0;i<PER_CAT;i++){ const a=rand(1,12),b=rand(1,12); bycat.add.push({cat:'add',display:`${a} + ${b}`,answer:a+b}); }
+  bycat.sub=[];
+  for(let i=0;i<PER_CAT;i++){ const a=rand(2,20),b=rand(1,a); bycat.sub.push({cat:'sub',display:`${a} − ${b}`,answer:a-b}); }
+  bycat.mul=[];
+  for(let i=0;i<PER_CAT;i++){ const a=rand(1,12),b=rand(1,12); bycat.mul.push({cat:'mul',display:`${a} × ${b}`,answer:a*b}); }
+  bycat.div=[];
+  for(let i=0;i<PER_CAT;i++){ const a=rand(1,12),b=rand(1,12); bycat.div.push({cat:'div',display:`${a*b} ÷ ${a}`,answer:b}); }
+  return bycat;
+}
+
+let bycat={}, startTime=0, timerInterval=null;
+
+function startQuiz(){
+  bycat=generate();
+  document.getElementById('start-screen').style.display='none';
+  document.getElementById('results-screen').style.display='none';
+  document.getElementById('worksheet-screen').style.display='block';
+
+  const hb=document.getElementById('btn-submit-header');
+  hb.textContent='Submit →'; hb.style.background='var(--correct)'; hb.onclick=trySubmit;
+
+  buildWorksheet();
+  startTime=Date.now();
+  timerInterval=setInterval(tick,500);
+  setTimeout(()=>{ const f=document.querySelector('.q-input'); if(f) f.focus(); },100);
+}
+
+function buildWorksheet(){
+  const body=document.getElementById('ws-body'); body.innerHTML='';
+  let gIdx=0;
+
+  CAT_ORDER.forEach(key=>{
+    const cat=CATS[key]; const qs=bycat[key];
+    const block=document.createElement('div'); block.className='section-block';
+
+    const hdr=document.createElement('div'); hdr.className='section-header';
+    hdr.innerHTML=`
+      <div class="section-title" style="color:${cat.color}">${cat.label}</div>
+      <div class="section-line" style="background:${cat.color};opacity:0.25"></div>
+      <div class="section-count">25 questions</div>`;
+    block.appendChild(hdr);
+
+    const grid=document.createElement('div'); grid.className='q-grid';
+    qs.forEach(q=>{
+      const idx=gIdx++;
+      const cell=document.createElement('div');
+      cell.className='q-cell';
+      cell.style.setProperty('--cell-color', cat.color);
+      cell.dataset.idx=idx;
+      cell.innerHTML=`
+        <span class="q-num">${idx+1}</span>
+        <span class="q-expr">${q.display} =</span>
+        <input class="q-input" type="number" inputmode="numeric" id="inp-${idx}" autocomplete="off">
+        <i class="q-result-icon"></i>`;
+      grid.appendChild(cell);
+    });
+
+    block.appendChild(grid);
+    body.appendChild(block);
+  });
+
+  document.querySelectorAll('.q-input').forEach(inp=>{
+    inp.addEventListener('input', onInput);
+    inp.addEventListener('keydown', onKeydown);
+  });
+}
+
+function onInput(e){
+  const inp=e.target;
+  inp.className='q-input'+(inp.value!==''?' filled':'');
+  updateProgress();
+}
+function onKeydown(e){
+  if(e.key==='Enter'||e.key==='Tab'){
+    e.preventDefault();
+    const all=Array.from(document.querySelectorAll('.q-input'));
+    const next=all[all.indexOf(e.target)+1];
+    if(next) next.focus(); else trySubmit();
+  }
+}
+function updateProgress(){
+  const inputs=document.querySelectorAll('.q-input');
+  let done=0; inputs.forEach(i=>{ if(i.value.trim()!=='') done++; });
+  document.getElementById('ans-done').textContent=done;
+  document.getElementById('progress-fill').style.width=(done/TOTAL*100)+'%';
+}
+
+// ── TIMER ──
+function tick(){
+  const elapsed=(Date.now()-startTime)/1000;
+  const remaining=Math.max(0, TARGET_SECONDS-elapsed);
+
+  // Elapsed display
+  const em=Math.floor(elapsed/60), es=Math.floor(elapsed%60);
+  document.getElementById('timer-val').textContent=`${em}:${String(es).padStart(2,'0')}`;
+
+  // Countdown ring
+  const arc=document.getElementById('countdown-arc');
+  const frac=remaining/TARGET_SECONDS;
+  const offset=CIRCUMFERENCE*(1-frac);
+  arc.style.strokeDashoffset=offset;
+
+  const rm=Math.floor(remaining/60), rs=Math.floor(remaining%60);
+  document.getElementById('countdown-label').textContent=`${rm}:${String(rs).padStart(2,'0')}`;
+
+  // Colour based on remaining time
+  let ringColor, timerColor;
+  if(frac>0.4){ ringColor=timerColor='var(--timer-good)'; }
+  else if(frac>0.15){ ringColor=timerColor='var(--timer-warn)'; }
+  else { ringColor=timerColor='var(--timer-bad)'; }
+  arc.style.stroke=ringColor;
+  document.getElementById('timer-val').style.color=timerColor;
+
+  // Pace pill — based on whether they're on track to finish in time
+  const done=parseInt(document.getElementById('ans-done').textContent)||0;
+  const pill=document.getElementById('pace-pill');
+  let paceState;
+
+  if(done<3){
+    pill.textContent='Get going!';
+    paceState='good';
+  } else {
+    // Required rate: TOTAL questions in TARGET_SECONDS
+    // Actual rate: done questions in elapsed seconds
+    const requiredSpq=TARGET_SECONDS/TOTAL;   // 3.9s per question
+    const actualSpq=elapsed/done;
+    if(actualSpq<requiredSpq*0.85){
+      pill.textContent='On fire 🔥'; paceState='good';
+    } else if(actualSpq<=requiredSpq*1.1){
+      pill.textContent='Good pace ✓'; paceState='good';
+    } else if(actualSpq<=requiredSpq*1.4){
+      pill.textContent='Speed up ⚡'; paceState='warn';
+    } else {
+      pill.textContent='Hurry up! ⏰'; paceState='bad';
+    }
+  }
+
+  const colors={good:'var(--timer-good)',warn:'var(--timer-warn)',bad:'var(--timer-bad)'};
+  const bgs={good:'#f0fdf4',warn:'#fffbeb',bad:'#fff5f5'};
+  pill.style.color=colors[paceState];
+  pill.style.borderColor=colors[paceState];
+  pill.style.background=bgs[paceState];
+}
+
+// ── SUBMIT ──
+function trySubmit(){
+  const inputs=document.querySelectorAll('.q-input');
+  let blanks=0; inputs.forEach(i=>{ if(i.value.trim()==='') blanks++; });
+  document.getElementById('modal-msg').innerHTML=blanks>0
+    ? `You have <strong>${blanks} unanswered question${blanks>1?'s':''}</strong>. Go back to fill them in, or submit now — blanks count as wrong.`
+    : `All 100 answered! Ready to see your score?`;
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal-bg').classList.remove('open'); }
+
+function finishQuiz(){
+  closeModal();
+  clearInterval(timerInterval);
+  const elapsed=(Date.now()-startTime)/1000;
+
+  let gIdx=0, totalCorrect=0;
+  const catScores={}; CAT_ORDER.forEach(k=>catScores[k]=0);
+
+  CAT_ORDER.forEach(key=>{
+    bycat[key].forEach(q=>{
+      const idx=gIdx++;
+      const inp=document.getElementById(`inp-${idx}`);
+      const cell=inp.closest('.q-cell');
+      const val=inp.value.trim();
+      const given=val===''?null:parseFloat(val);
+      const correct=given!==null&&given===q.answer;
+
+      inp.setAttribute('disabled','');
+      cell.classList.remove('correct','wrong');
+
+      const icon=cell.querySelector('.q-result-icon');
+
+      if(correct){
+        cell.classList.add('correct');
+        icon.textContent='✓';
+        totalCorrect++; catScores[key]++;
+      } else {
+        cell.classList.add('wrong');
+        icon.textContent='✗';
+        cell.setAttribute('data-answer',`Answer: ${q.answer}`);
+      }
+    });
+  });
+
+  // Results
+  const pct=totalCorrect/TOTAL;
+  let title='Keep Practising!';
+  if(pct===1) title='Perfect! 🌟';
+  else if(pct>=0.9) title='Excellent! 🎉';
+  else if(pct>=0.75) title='Great Work!';
+  else if(pct>=0.5) title='Good Effort!';
+
+  document.getElementById('res-title').textContent=title;
+  document.getElementById('res-score').textContent=`${totalCorrect}/100`;
+
+  const em=Math.floor(elapsed/60),es=Math.floor(elapsed%60);
+  const underTarget=elapsed<=TARGET_SECONDS;
+  document.getElementById('res-meta').innerHTML=`
+    <div class="res-meta-item">⏱ <strong>${em}:${String(es).padStart(2,'0')}</strong> total time</div>
+    <div class="res-meta-item">⚡ <strong>${(elapsed/TOTAL).toFixed(1)}s</strong> per question</div>
+    <div class="res-meta-item">${underTarget?'✅ Under':'❌ Over'} 6:30 target</div>
+    <div class="res-meta-item">${pct>=0.75?'🔥':'📚'} <strong>${Math.round(pct*100)}%</strong> score</div>
+  `;
+
+  const catsEl=document.getElementById('res-cats'); catsEl.innerHTML='';
+  CAT_ORDER.forEach(k=>{
+    const cat=CATS[k]; const sc=catScores[k];
+    const bar=sc/PER_CAT*100;
+    const d=document.createElement('div'); d.className='res-cat';
+    d.innerHTML=`
+      <div class="res-cat-name">${cat.label}</div>
+      <div class="res-cat-score" style="color:${cat.color}">${sc}/25</div>
+      <div class="res-cat-bar-wrap"><div class="res-cat-bar-fill" style="width:${bar}%;background:${cat.color}"></div></div>`;
+    catsEl.appendChild(d);
+  });
+
+  document.getElementById('results-screen').style.display='flex';
+  window.scrollTo(0,0);
+
+  const hb=document.getElementById('btn-submit-header');
+  hb.textContent='🏠 Go Home'; hb.style.background='var(--muted)'; hb.onclick=goHome;
+}
+
+function showReview(){
+  document.getElementById('results-screen').style.display='none';
+  window.scrollTo(0,0);
+}
+function goHome(){
+  clearInterval(timerInterval);
+  document.getElementById('results-screen').style.display='none';
+  document.getElementById('worksheet-screen').style.display='none';
+  document.getElementById('start-screen').style.display='flex';
+}
+</script>
+</body>
+</html>
